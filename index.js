@@ -1,13 +1,20 @@
+const morgan = require('morgan')
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-
 app.use(bodyParser.json())
+
+morgan.token('data', function (req, res) { 
+    return (JSON.stringify({"name": req.body.name, "number": req.body.number}))
+})
+
+app.use(morgan(':method :url :data :status :res[content-length] - :response-time ms'))
 
 const generateId = () => {
     const maxId = persons.length > 0 ? persons.map(p => p.id).sort().reverse()[0] : 1
     return maxId + 1
   }
+
 
 let persons = [
     {
@@ -68,7 +75,7 @@ let persons = [
       return response.status(400).json({error: 'content missing'})
     }
 
-    if (persons.find(p => p.name !== body.name)) {
+    if (persons.find(p => p.name === body.name)) {
         return response.status(400).json({error: 'name must be unique'})
     }
   
