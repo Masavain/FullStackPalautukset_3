@@ -14,6 +14,8 @@ morgan.token('data', function (req, res) {
 
 app.use(morgan(':method :url :data :status :res[content-length] - :response-time ms'))
 
+const Person = require('./models/person')
+
 const generateId = () => {
   const maxId = persons.length > 0 ? persons.map(p => p.id).sort().reverse()[0] : 1
   return maxId + 1
@@ -44,7 +46,11 @@ let persons = [
 ]
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  Person
+    .find({})
+    .then(persons => {
+      res.json(persons.map(Person.format))
+    })
 })
 
 app.get('/info', (req, res) => {
@@ -74,25 +80,26 @@ app.delete('/api/persons/:id', (request, response) => {
 
 app.post('/api/persons/', (request, response) => {
   const body = request.body
-  console.log("name:", body.name, "number:", body.number ,"yee")
 
   if (body.name === undefined || body.number === undefined) {
     return response.status(400).json({ error: 'content missing' })
   }
 
-  if (persons.find(p => p.name === body.name)) {
-    return response.status(400).json({ error: 'name must be unique' })
-  }
+  // if (persons.find(p => p.name === body.name)) {
+  //   return response.status(400).json({ error: 'name must be unique' })
+  // }
 
-  const person = {
+  const person = new Person({
     name: body.name,
     number: body.number,
-    id: Math.floor(Math.random() * 1000000)
-  }
+  })
 
-  persons = persons.concat(person)
+  person
+  .save()
+  .then(savedPerson => {
+    response.json(Person.format(savedPerson))
+  })
 
-  response.json(person)
 })
 
 const PORT = process.env.PORT || 3001
