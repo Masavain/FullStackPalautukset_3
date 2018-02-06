@@ -9,8 +9,8 @@ app.use(express.static('build'))
 
 
 
-morgan.token('data', function (req, res) {
-  return (JSON.stringify({ "name": req.body.name, "number": req.body.number }))
+morgan.token('data', function (req) {
+  return (JSON.stringify({ 'name': req.body.name, 'number': req.body.number }))
 })
 
 app.use(morgan(':method :url :data :status :res[content-length] - :response-time ms'))
@@ -52,10 +52,10 @@ app.get('/api/persons/:id', (request, response) => {
 app.delete('/api/persons/:id', (request, response) => {
   Person
     .findByIdAndRemove(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
-    .catch(error => {
+    .catch(() => {
       response.status(400).send({ error: 'malformatted id' })
     })
 })
@@ -75,15 +75,13 @@ app.post('/api/persons/', (request, response) => {
   Person
     .find({ name: nameToBeAdded })
     .then(result => {
-      if (result.map(Person.format).length == 0) {
+      if (result.map(Person.format).length === 0) {
         person
           .save()
           .then(Person.format)
           .then(savedPerson => {
             response.json(Person.format(savedPerson))
-          })
-            
-      } else {
+          })} else {
         response.status(400).send({ error: 'Henkilö on jo olemassa' })
       }
     })
